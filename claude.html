@@ -30,7 +30,7 @@ const BOXES = [
 ];
 let shoot = [];
 try { shoot = (await loadEnc(k, 'data.enc')).shoot || []; } catch (e) {}
-main.innerHTML = BOXES.map(b => `<div class="box" data-box="${b.box}" style="border-color:var(--${b.c}-dark)44"><h3 style="color:var(--${b.c}-dark)">${b.t}</h3><div class="hint">${b.h}</div>` +
+main.innerHTML = BOXES.map(b => `<div class="box" data-box="${b.box}"><h3 style="color:var(--${b.c}-dark)">${b.t}</h3><div class="hint">${b.h}</div>` +
   (b.pick ? `<select class="pick" style="width:100%;margin-bottom:8px;padding:9px;border-radius:12px;border:1.5px solid var(--border);font:inherit;font-size:13px"><option value="">קלוד יזהה לאיזה פוסט</option>${shoot.map(s => `<option value="${s.code}">${s.code} ${(s.name || '').replace(/</g, '')}</option>`).join('')}</select>` : '') +
   `<textarea placeholder="הדביקי כאן קישורים או הערה"></textarea>` +
   (b.file ? `<input type="file" class="f" style="margin-top:8px;font-size:13px">` : '') +
