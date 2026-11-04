@@ -31,4 +31,4 @@ export async function loadEnc(secret, name) {
 export const fileToB64 = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = no; r.readAsDataURL(f); });
 export function setSt(el, msg, cls) { el.textContent = msg; el.className = 'st ' + (cls || ''); }
 
-function carry(s) { document.querySelectorAll('a[href]').forEach(a => { const h = a.getAttribute('href'); if (/^[w.-]+.html$/.test(h)) a.setAttribute('href', h + '#k=' + s); }); }
+function carry(s) { document.querySelectorAll('a[href]').forEach(a => { const h = a.getAttribute('href'); if (/^[\w.-]+\.html$/.test(h)) a.setAttribute('href', h + '#k=' + s); }); }
