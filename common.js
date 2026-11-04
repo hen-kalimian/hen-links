@@ -4,7 +4,7 @@ const store = { get(k, d) { try { return localStorage.getItem(k) || d } catch (e
 export const $ = id => document.getElementById(id);
 export function getSecret() {
   let s = (location.hash.match(/k=([\w-]+)/) || [])[1] || store.get('henlinks-k', '');
-  if (s) { store.set('henlinks-k', s); if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
+  if (s) { store.set('henlinks-k', s); if (!location.hash) history.replaceState(null, '', location.pathname + location.search + '#k=' + s); carry(s); }
   return s;
 }
 export function needKey(main) { main.innerHTML = '<div class="lock">הדף נפתח רק מהקישור האישי ששלחתי לך.</div>'; }
@@ -30,3 +30,5 @@ export async function loadEnc(secret, name) {
 }
 export const fileToB64 = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = no; r.readAsDataURL(f); });
 export function setSt(el, msg, cls) { el.textContent = msg; el.className = 'st ' + (cls || ''); }
+
+function carry(s) { document.querySelectorAll('a[href]').forEach(a => { const h = a.getAttribute('href'); if (/^[w.-]+.html$/.test(h)) a.setAttribute('href', h + '#k=' + s); }); }
