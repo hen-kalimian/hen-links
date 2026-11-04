@@ -2,9 +2,9 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>קלוד: שליחת קישורים וקבצים</title>
+<title>העלאה לקלוד</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -13,47 +13,82 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="הקיצורים">
 <meta name="theme-color" content="#fbfcfc">
+<style>
+  html,body{height:100%;overflow:hidden}
+  body{padding:0;display:flex;flex-direction:column}
+  #wrap{max-width:560px;width:100%;height:100dvh;margin:0 auto;padding:max(8px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+  .top{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+  .top .back{margin:0}
+  .top h1{margin:0;font-size:17px;color:var(--blue-dark)}
+  .top .sp{width:70px}
+  #main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr) auto;gap:8px}
+  .tile{display:flex;flex-direction:column;gap:5px;min-height:0;min-width:0;padding:8px;border-radius:14px;border:1.5px solid transparent;box-shadow:0 1px 3px rgba(30,42,49,.06)}
+  .tile h3{margin:0;font-family:'Rubik',sans-serif;font-size:13.5px;line-height:1.25;text-align:center}
+  .tile textarea{flex:1 1 auto;min-height:0;width:100%;border:1.5px solid var(--border);border-radius:10px;padding:7px;font:inherit;font-size:13px;resize:none;background:#fff;color:var(--text)}
+  .tile button{flex:0 0 auto;padding:7px 6px;border-radius:10px;border:0;color:#fff;font:600 13px 'Open Sans','Rubik',sans-serif;cursor:pointer}
+  .tile button[disabled]{opacity:.5}
+  .st{flex:0 0 auto;min-height:15px;font-size:12px;text-align:center;font-weight:600;margin:0}
+  .st.ok{color:var(--mint-dark)} .st.err{color:var(--rose-dark)} .st.wait{color:var(--blue-dark)} .st.dup{color:var(--gold-dark)}
+  .t-rose{background:var(--rose-tint);border-color:#fbd9e4} .t-rose h3{color:var(--rose-dark)} .t-rose button{background:var(--rose-dark)}
+  .t-blue{background:var(--blue-tint);border-color:#dceaf2} .t-blue h3{color:var(--blue-dark)} .t-blue button{background:var(--blue-dark)}
+  .t-mint{background:var(--mint-tint);border-color:#dcf0e6} .t-mint h3{color:var(--mint-dark)} .t-mint button{background:var(--mint-dark)}
+  .t-gold{background:var(--gold-tint);border-color:#f3e6bf} .t-gold h3{color:var(--gold-dark)} .t-gold button{background:var(--gold-dark)}
+  .t-gray{background:var(--gray-tint);border-color:#e3eeee} .t-gray h3{color:var(--gray-dark)} .t-gray button{background:var(--gray-dark)}
+  .wide{grid-column:1/-1;flex-direction:column}
+  .wide .rowin{display:flex;gap:6px;align-items:stretch}
+  .wide textarea{height:44px;flex:1 1 auto}
+  .wide .f{font-size:12px;max-width:42%;align-self:center}
+  .wide button{flex:0 0 auto;padding:7px 14px}
+</style>
 </head>
 <body>
 <div id="wrap">
-  <a class="back" href="index.html">חזרה לקיצורים</a>
-  <h1 class="page-title">קלוד</h1>
-  <div class="page-sub">מדביקה קישור או כותבת הערה, ולוחצת שליחה. אפשר כמה פעמים בכל תיבה</div>
+  <div class="top"><a class="back" href="index.html">חזרה</a><h1>העלאה לקלוד</h1><span class="sp"></span></div>
   <div id="main"></div>
 </div>
 <script type="module">
-import { $, getSecret, needKey, send, loadEnc, fileToB64, setSt } from './common.js';
+import { $, getSecret, needKey, send, fileToB64 } from './common.js';
 const k = getSecret(); const main = $('main');
 if (!k) { needKey(main); throw 0; }
 const BOXES = [
-  { box: 'rec', t: 'המלצות', c: 'rose', h: 'קישור או צילום מסך של המלצה חדשה. קלוד מעלה אותה לאתר לבד. שליחה כאן היא אישור מפורש שלך להיכנס לעורך למשך שעה.' },
-  { box: 'vid-solo', t: 'סרטונים לדאשבורד תוכן', c: 'blue', h: 'קישורים לסרטונים. קלוד עורך בסקיל העריכה ומעלה למוכן לבדיקה, כסרטון בפני עצמו (לא קשור לפוסט ליבה) שעולה למתזמן.' },
-  { box: 'vid-shoot', t: 'סרטונים לצילום (דיבור למצלמה)', c: 'gold', h: 'קישורים לסרטונים שצילמת. קלוד עורך ומעביר למוכן לבדיקה, ומשייך לפוסט הליבה שלהם. אפשר לבחור פוסט, ואם לא, קלוד מזהה לבד.', pick: true },
-  { box: 'organic-done', t: 'סרטונים לאורגני, אחרי עריכה', c: 'rose', h: 'קישורים לסרטונים שכבר ערוכים ומוכנים לפרסום אורגני. קלוד לא עורך אותם, אלא מעלה ישירות ללוח התוכן בשלב "מוכן לתזמון" ומשם הם נכנסים ללוח הזמנים.' },
-  { box: 'ad-raw', t: 'סרטונים לממומן, לפני עריכה', c: 'mint', h: 'קישורים לחומר גלם למודעות. קלוד עורך ומכין לאישור שלך.' },
-  { box: 'ad-done', t: 'סרטונים לממומן, אחרי עריכה', c: 'mint', h: 'קישורים לסרטונים מוכנים למודעות. קלוד מעלה לאישור שלך בעמוד המודעות.' },
-  { box: 'other', t: 'קבצים נוספים', c: 'gray', h: 'קישור או קובץ קטן (עד 350KB). קלוד מבין מה זה, ואם לא, תקבלי בדאשבורד כרטיס "התקבל קובץ, מה לעשות איתו" ותכתבי לו שם.', file: true },
+  { box: 'ad-raw', t: 'ממומן לפני עריכה', c: 'mint' },
+  { box: 'ad-done', t: 'ממומן אחרי עריכה', c: 'mint' },
+  { box: 'vid-solo', t: 'אורגני לפני עריכה', c: 'blue' },
+  { box: 'organic-done', t: 'אורגני אחרי עריכה', c: 'blue' },
+  { box: 'vid-shoot', t: 'אורגני לצילום מפוסטי ליבה', c: 'gold' },
+  { box: 'rec', t: 'המלצות', c: 'rose' },
+  { box: 'other', t: 'קבצים לקלוד', c: 'gray', file: true, wide: true },
 ];
-let shoot = [];
-try { shoot = (await loadEnc(k, 'data.enc')).shoot || []; } catch (e) {}
-main.innerHTML = BOXES.map(b => `<div class="box" data-box="${b.box}"><h3 style="color:var(--${b.c}-dark)">${b.t}</h3><div class="hint">${b.h}</div>` +
-  (b.pick ? `<select class="pick" style="width:100%;margin-bottom:8px;padding:9px;border-radius:12px;border:1.5px solid var(--border);font:inherit;font-size:13px"><option value="">קלוד יזהה לאיזה פוסט</option>${shoot.map(s => `<option value="${s.code}">${s.code} ${(s.name || '').replace(/</g, '')}</option>`).join('')}</select>` : '') +
-  `<textarea placeholder="הדביקי כאן קישורים או הערה"></textarea>` +
-  (b.file ? `<input type="file" class="f" style="margin-top:8px;font-size:13px">` : '') +
-  `<div class="row"><button class="btn ${b.c === 'gray' ? 'gray' : b.c}">שליחה לקלוד</button></div><div class="st"></div></div>`).join('');
-main.querySelectorAll('.box').forEach(el => {
-  const btn = el.querySelector('button'), ta = el.querySelector('textarea'), st = el.querySelector('.st'), f = el.querySelector('.f'), pick = el.querySelector('.pick');
+const sentKey = 'henlinks-sent';
+const sent = () => { try { return new Set(JSON.parse(localStorage.getItem(sentKey) || '[]')); } catch (e) { return new Set(); } };
+const remember = ids => { try { const s = sent(); ids.forEach(i => s.add(i)); localStorage.setItem(sentKey, JSON.stringify([...s].slice(-800))); } catch (e) {} };
+const norm = u => u.trim().replace(/[?#].*$/, '').replace(/\/+$/, '').toLowerCase();
+function idsOf(box, text, file) {
+  const urls = (text.match(/https?:\/\/[^\s]+/g) || []).map(norm);
+  const ids = urls.map(u => box + '|' + u);
+  if (!ids.length && text) ids.push(box + '|t|' + text.replace(/\s+/g, ' ').trim().toLowerCase());
+  if (file) ids.push(box + '|f|' + file.name + '|' + file.size);
+  return ids;
+}
+main.innerHTML = BOXES.map(b => `<div class="tile t-${b.c}${b.wide ? ' wide' : ''}" data-box="${b.box}"><h3>${b.t}</h3>` +
+  (b.wide ? `<div class="rowin"><textarea placeholder="קישור או הערה"></textarea>${b.file ? '<input type="file" class="f">' : ''}</div>` : `<textarea placeholder="הדביקי קישור"></textarea>`) +
+  `<button>שליחה</button><p class="st"></p></div>`).join('');
+const say = (st, msg, cls) => { st.textContent = msg; st.className = 'st ' + (cls || ''); };
+main.querySelectorAll('.tile').forEach(el => {
+  const btn = el.querySelector('button'), ta = el.querySelector('textarea'), st = el.querySelector('.st'), f = el.querySelector('.f');
   btn.onclick = async () => {
     const text = ta.value.trim(), file = f && f.files[0];
-    if (!text && !file) { setSt(st, 'הדביקי קישור או כתבי הערה קודם', 'err'); return; }
-    if (file && file.size > 350 * 1024) { setSt(st, 'הקובץ גדול מ-350KB. תעלי אותו לדרייב ותדביקי כאן את הקישור', 'err'); return; }
-    btn.disabled = true; setSt(st, 'שולחת...');
+    if (!text && !file) { say(st, 'הדביקי קישור קודם', 'err'); return; }
+    if (file && file.size > 350 * 1024) { say(st, 'קובץ גדול מדי, שלחי קישור', 'err'); return; }
+    const ids = idsOf(el.dataset.box, text, file), seen = sent();
+    if (ids.length && ids.every(i => seen.has(i))) { say(st, 'קובץ זה כבר הועלה ונקלט', 'dup'); return; }
+    btn.disabled = true; say(st, 'מעלה', 'wait');
     try {
-      const row = { box: el.dataset.box, text, ref: pick ? pick.value : '' };
+      const row = { box: el.dataset.box, text };
       if (file) { row.fileName = file.name; row.fileMime = file.type; row.file = await fileToB64(file); }
       await send(k, row);
-      ta.value = ''; if (f) f.value = ''; setSt(st, 'נשלח. קלוד קולט תוך כמה דקות ותראי כרטיס בדאשבורד', 'ok');
-    } catch (e) { setSt(st, 'השליחה נכשלה, נסי שוב בעוד רגע', 'err'); }
+      remember(ids); ta.value = ''; if (f) f.value = ''; say(st, 'נקלט', 'ok');
+    } catch (e) { say(st, 'נכשל, נסי שוב', 'err'); }
     btn.disabled = false;
   };
 });
