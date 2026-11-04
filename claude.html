@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>קלוד: שליחת קישורים וקבצים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <a class="back" href="index.html">חזרה לקיצורים</a>
+  <h1 class="page-title">קלוד</h1>
+  <div class="page-sub">מדביקה קישור או כותבת הערה, ולוחצת שליחה. אפשר כמה פעמים בכל תיבה</div>
+  <div id="main"></div>
+</div>
+<script type="module">
+import { $, getSecret, needKey, send, loadEnc, fileToB64, setSt } from './common.js';
+const k = getSecret(); const main = $('main');
+if (!k) { needKey(main); throw 0; }
+const BOXES = [
+  { box: 'rec', t: 'המלצות', c: 'rose', h: 'קישור או צילום מסך של המלצה חדשה. קלוד מעלה אותה לאתר לבד. שליחה כאן היא אישור מפורש שלך להיכנס לעורך למשך שעה.' },
+  { box: 'vid-solo', t: 'סרטונים לדאשבורד תוכן', c: 'blue', h: 'קישורים לסרטונים. קלוד עורך בסקיל העריכה ומעלה למוכן לבדיקה, כסרטון בפני עצמו (לא קשור לפוסט ליבה) שעולה למתזמן.' },
+  { box: 'vid-shoot', t: 'סרטונים לצילום (דיבור למצלמה)', c: 'gold', h: 'קישורים לסרטונים שצילמת. קלוד עורך ומעביר למוכן לבדיקה, ומשייך לפוסט הליבה שלהם. אפשר לבחור פוסט, ואם לא, קלוד מזהה לבד.', pick: true },
+  { box: 'ad-raw', t: 'סרטונים לממומן, לפני עריכה', c: 'mint', h: 'קישורים לחומר גלם למודעות. קלוד עורך ומכין לאישור שלך.' },
+  { box: 'ad-done', t: 'סרטונים לממומן, אחרי עריכה', c: 'mint', h: 'קישורים לסרטונים מוכנים למודעות. קלוד מעלה לאישור שלך בעמוד המודעות.' },
+  { box: 'other', t: 'קבצים נוספים', c: 'gray', h: 'קישור או קובץ קטן (עד 350KB). קלוד מבין מה זה, ואם לא, תקבלי בדאשבורד כרטיס "התקבל קובץ, מה לעשות איתו" ותכתבי לו שם.', file: true },
+];
+let shoot = [];
+try { shoot = (await loadEnc(k, 'data.enc')).shoot || []; } catch (e) {}
+main.innerHTML = BOXES.map(b => `<div class="box" data-box="${b.box}" style="border-color:var(--${b.c}-dark)44"><h3 style="color:var(--${b.c}-dark)">${b.t}</h3><div class="hint">${b.h}</div>` +
+  (b.pick ? `<select class="pick" style="width:100%;margin-bottom:8px;padding:9px;border-radius:12px;border:1.5px solid var(--border);font:inherit;font-size:13px"><option value="">קלוד יזהה לאיזה פוסט</option>${shoot.map(s => `<option value="${s.code}">${s.code} ${(s.name || '').replace(/</g, '')}</option>`).join('')}</select>` : '') +
+  `<textarea placeholder="הדביקי כאן קישורים או הערה"></textarea>` +
+  (b.file ? `<input type="file" class="f" style="margin-top:8px;font-size:13px">` : '') +
+  `<div class="row"><button class="btn ${b.c === 'gray' ? 'gray' : b.c}">שליחה לקלוד</button></div><div class="st"></div></div>`).join('');
+main.querySelectorAll('.box').forEach(el => {
+  const btn = el.querySelector('button'), ta = el.querySelector('textarea'), st = el.querySelector('.st'), f = el.querySelector('.f'), pick = el.querySelector('.pick');
+  btn.onclick = async () => {
+    const text = ta.value.trim(), file = f && f.files[0];
+    if (!text && !file) { setSt(st, 'הדביקי קישור או כתבי הערה קודם', 'err'); return; }
+    if (file && file.size > 350 * 1024) { setSt(st, 'הקובץ גדול מ-350KB. תעלי אותו לדרייב ותדביקי כאן את הקישור', 'err'); return; }
+    btn.disabled = true; setSt(st, 'שולחת...');
+    try {
+      const row = { box: el.dataset.box, text, ref: pick ? pick.value : '' };
+      if (file) { row.fileName = file.name; row.fileMime = file.type; row.file = await fileToB64(file); }
+      await send(k, row);
+      ta.value = ''; if (f) f.value = ''; setSt(st, 'נשלח. קלוד קולט תוך כמה דקות ותראי כרטיס בדאשבורד', 'ok');
+    } catch (e) { setSt(st, 'השליחה נכשלה, נסי שוב בעוד רגע', 'err'); }
+    btn.disabled = false;
+  };
+});
+</script>
+</body>
+</html>

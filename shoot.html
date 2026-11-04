@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>טקסטים לצילום</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <a class="back" href="index.html">חזרה לקיצורים</a>
+  <h1 class="page-title">טקסטים לצילום</h1>
+  <div class="page-sub">דיבור למצלמה מתוך פוסטי הליבה. אחרי שצילמת והעלית בתיבה בעמוד קלוד, לוחצת "צילמתי ושלחתי" והטקסט נעלם מכאן</div>
+  <div id="main"><div class="lock">טוענת...</div></div>
+</div>
+<script type="module">
+import { $, getSecret, needKey, send, loadEnc, setSt } from './common.js';
+const k = getSecret(); const main = $('main');
+if (!k) { needKey(main); throw 0; }
+const ls = { get() { try { return JSON.parse(localStorage.getItem('henlinks-done') || '[]') } catch (e) { return [] } }, add(x) { try { localStorage.setItem('henlinks-done', JSON.stringify([...this.get(), x])) } catch (e) {} } };
+let d; try { d = await loadEnc(k, 'data.enc'); } catch (e) { main.innerHTML = '<div class="lock">אין עדיין נתונים. נסי שוב בעוד כמה דקות.</div>'; throw 0; }
+const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+function draw() {
+  const done = ls.get(), list = (d.shoot || []).filter(s => !done.includes(s.id));
+  if (!list.length) { main.innerHTML = '<div class="lock">אין כרגע טקסטים שמחכים לצילום.</div>'; return; }
+  main.innerHTML = list.map(s => `<div class="box" data-id="${s.id}" data-code="${esc(s.code)}"><h3>${esc(s.code)} ${esc(s.name)}</h3><div class="shoot">${esc(s.text)}</div>
+    <div class="row"><button class="btn rose" data-a="copy">העתקת הטקסט</button><button class="btn mint" data-a="done">צילמתי ושלחתי</button></div><div class="st"></div></div>`).join('');
+  main.querySelectorAll('.box').forEach(el => {
+    const s = list.find(x => x.id === el.dataset.id), st = el.querySelector('.st');
+    el.querySelector('[data-a=copy]').onclick = async () => {
+      try { await navigator.clipboard.writeText(s.text); } catch (e) { const t = document.createElement('textarea'); t.value = s.text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+      setSt(st, 'הועתק', 'ok');
+    };
+    el.querySelector('[data-a=done]').onclick = async e => {
+      e.target.disabled = true; setSt(st, 'שולחת...');
+      try { await send(k, { box: 'shot-done', ref: s.id, text: s.code + ' ' + s.name }); ls.add(s.id); el.remove(); if (!main.querySelector('.box')) draw(); }
+      catch (er) { e.target.disabled = false; setSt(st, 'השליחה נכשלה, נסי שוב', 'err'); }
+    };
+  });
+}
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>הצצה לדאשבורד קלוד</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap" style="max-width:900px">
+  <a class="back" href="index.html">חזרה לקיצורים</a>
+  <h1 class="page-title">הצצה לדאשבורד קלוד</h1>
+  <div class="page-sub" id="sub">טוענת...</div>
+  <div id="main"></div>
+</div>
+<script type="module">
+import { $, getSecret, needKey, loadEnc } from './common.js';
+const k = getSecret(); const main = $('main');
+if (!k) { needKey(main); throw 0; }
+try {
+  const d = await loadEnc(k, 'dash.enc');
+  $('sub').textContent = 'תצוגה בלבד, כפתורים שמובילים למחשב לא פעילים. עודכן ' + new Date(d.ts).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+  const f = document.createElement('iframe'); f.className = 'frame'; f.style.height = '80vh';
+  f.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox'); f.srcdoc = d.html; main.appendChild(f);
+} catch (e) { $('sub').textContent = ''; main.innerHTML = '<div class="lock">אין עדיין תמונת מצב של הדאשבורד. נסי שוב בעוד כמה דקות.</div>'; }
+</script>
+</body>
+</html>

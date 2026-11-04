@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>הקיצורים של חן</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="pencil-rough" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6"/></filter></svg>
+<div id="wrap">
+  <h1 class="page-title">הקיצורים של חן</h1>
+  <div class="page-sub">הכל במקום אחד, גם מהנייד</div>
+  <div id="main">
+  <div class="group">
+    <div class="group-title" style="color:var(--blue-dark)"><span class="dot" style="background:var(--blue-dark)"></span>עסק ומשלוחים</div>
+    <div class="grid grid-3">
+      <a class="card c-blue" href="http://talkwithkids.co.il/orders" target="_blank" rel="noopener"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"/></svg></span><span class="label">מערכת הזמנות<span class="chip">טוני</span></span></a>
+      <a class="card c-mint" href="https://crm.tapuzdelivery.co.il/Baldar/Login.aspx?ReturnUrl=%2fBaldar%2fNewDelivery.aspx" target="_blank" rel="noopener"><span class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="12" height="9" rx="1.5"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg></span><span class="label">משלוחים<span class="chip">תפוז</span></span></a>
+      <a class="card c-gray" href="http://talkwithkids.co.il/account/programs" target="_blank" rel="noopener"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 5.5 12 3l9 2.5v13L12 21l-9-2.5v-13Z"/><path d="M12 3v18"/></svg></span><span class="label">אזור הקורסים<span class="chip">באתר שלי</span></span></a>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title" style="color:var(--rose-dark)"><span class="dot" style="background:var(--rose-dark)"></span>קלוד ותוכן</div>
+    <div class="grid grid-3">
+      <a class="card c-rose" href="dash.html"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 13l3-3 3 2 4-5"/></svg></span><span class="label">דאשבורד קלוד<span class="chip">הצצה מהנייד</span></span></a>
+      <a class="card shortcuts-card" href="claude.html"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg></span><span class="label">קלוד<span class="chip">שליחת קישורים וקבצים</span></span></a>
+      <a class="card c-gold" href="shoot.html"><span class="icon"><svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="13" height="11" rx="2"/><path d="m15.5 11 6-3.5v9l-6-3.5Z"/></svg></span><span class="label">טקסטים לצילום<span class="chip">דיבור למצלמה</span></span></a>
+    </div>
+  </div>
+  <div class="group">
+    <div class="group-title" style="color:var(--gold-dark)"><span class="dot" style="background:var(--gold-dark)"></span>הקלטות ומשחקים</div>
+    <div class="grid grid-3">
+      <a class="card c-mint" href="https://nextlevelclub.co.il/recordings" target="_blank" rel="noopener"><span class="icon"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><span class="label">נקסט לבל<span class="chip">הקלטות המועדון</span></span></a>
+      <a class="card c-blue" id="studio" href="#" style="display:none" target="_blank" rel="noopener"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9.5 8.5 6 3.5-6 3.5v-7Z"/></svg></span><span class="label">אולפן<span class="chip">אישור המשחקים</span></span></a>
+    </div>
+  </div>
+  </div>
+  <div class="footer-note">דף פרטי, לא מיועד לשיתוף</div>
+</div>
+<script type="module">
+import { getSecret, loadEnc } from './common.js';
+const k = getSecret();
+if (k) loadEnc(k, 'data.enc').then(d => { if (d.links && d.links.studio) { const a = document.getElementById('studio'); a.href = d.links.studio; a.style.display = ''; } }).catch(() => {});
+</script>
+</body>
+</html>
