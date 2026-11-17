@@ -18,7 +18,7 @@
 <div id="wrap">
   <a class="back" href="index.html">חזרה לקיצורים</a>
   <h1 class="page-title">טקסטים לצילום</h1>
-  <div class="page-sub">דיבור למצלמה מתוך פוסטי הליבה. אחרי שצילמת והעלית בתיבה בעמוד קלוד, לוחצת "צילמתי ושלחתי" והטקסט נעלם מכאן</div>
+  <div class="page-sub">דיבור למצלמה מתוך פוסטי הליבה. אחרי שצילמת והעלית בתיבה בעמוד קלוד, לוחצת "צילמתי ושלחתי" והטקסט נעלם מכאן. טקסט שלא רלוונטי אפשר להסיר ב"מחיקה"</div>
   <div id="main"><div class="lock">טוענת...</div></div>
 </div>
 <script type="module">
@@ -32,7 +32,7 @@ function draw() {
   const done = ls.get(), list = (d.shoot || []).filter(s => !done.includes(s.id));
   if (!list.length) { main.innerHTML = '<div class="lock">אין כרגע טקסטים שמחכים לצילום.</div>'; return; }
   main.innerHTML = list.map(s => `<div class="box" data-id="${s.id}" data-code="${esc(s.code)}"><h3>${esc(s.code)} ${esc(s.name)}</h3><div class="shoot">${esc(s.text)}</div>
-    <div class="row"><button class="btn rose" data-a="copy">העתקת הטקסט</button><button class="btn mint" data-a="done">צילמתי ושלחתי</button></div><div class="st"></div></div>`).join('');
+    <div class="row"><button class="btn rose" data-a="copy">העתקת הטקסט</button><button class="btn mint" data-a="done">צילמתי ושלחתי</button><button class="btn" data-a="del" style="background:#fff;color:#B8236B;border:1.5px solid #FBC5D6">מחיקה</button></div><div class="st"></div></div>`).join('');
   main.querySelectorAll('.box').forEach(el => {
     const s = list.find(x => x.id === el.dataset.id), st = el.querySelector('.st');
     el.querySelector('[data-a=copy]').onclick = async () => {
@@ -43,6 +43,12 @@ function draw() {
       e.target.disabled = true; setSt(st, 'שולחת...');
       try { await send(k, { box: 'shot-done', ref: s.id, text: s.code + ' ' + s.name }); ls.add(s.id); el.remove(); if (!main.querySelector('.box')) draw(); }
       catch (er) { e.target.disabled = false; setSt(st, 'השליחה נכשלה, נסי שוב', 'err'); }
+    };
+    el.querySelector('[data-a=del]').onclick = async e => {
+      if (!confirm('למחוק את הטקסט הזה מרשימת הצילום?')) return;
+      e.target.disabled = true; setSt(st, 'מוחקת...');
+      try { await send(k, { box: 'shot-hide', ref: s.id, text: s.code + ' ' + s.name }); ls.add(s.id); el.remove(); if (!main.querySelector('.box')) draw(); }
+      catch (er) { e.target.disabled = false; setSt(st, 'המחיקה נכשלה, נסי שוב', 'err'); }
     };
   });
 }
