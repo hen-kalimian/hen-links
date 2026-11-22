@@ -61,7 +61,7 @@
 <script type="module">
 import { getSecret, loadEnc } from './common.js';
 const k = getSecret();
-if (k) loadEnc(k, 'data.enc').then(d => { if (d.links && d.links.studio) { const a = document.getElementById('studio'); a.href = d.links.studio; a.style.display = ''; } }).catch(() => {});
+if (k) loadEnc(k, 'data.enc').then(d => { try { localStorage.setItem('wg-owner', '1'); } catch (e) {} if (d.links && d.links.studio) { const a = document.getElementById('studio'); a.href = d.links.studio; a.style.display = ''; } }).catch(() => {});
 </script>
 </body>
 </html>
