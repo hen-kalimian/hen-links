@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>אישור משחקים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="הקיצורים">
+<meta name="theme-color" content="#fbfcfc">
+<style>
+  .gp{border-width:2px}
+  .gp .tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+  .gp .tag{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--rose-tint);color:var(--rose-dark);border:1px solid #fbd9e4}
+  .gp .tag.m{background:var(--mint-tint);color:var(--mint-dark);border-color:#dcf0e6}
+  .gp .tag.b{background:var(--blue-tint);color:var(--blue-dark);border-color:#dceaf2}
+  .gp h4{margin:10px 0 2px;font-family:'Rubik',sans-serif;font-size:13px;color:var(--gray-dark)}
+  .gp p{margin:0;font-size:14px;line-height:1.6}
+  .gp textarea{min-height:52px;margin-top:10px}
+  .decided-title{font-family:'Rubik',sans-serif;font-weight:700;font-size:13px;color:var(--gray-dark);margin:22px 0 8px}
+  .decided{display:flex;gap:8px;align-items:center;font-size:13px;padding:7px 10px;border-radius:10px;background:#fff;border:1px solid var(--border);margin-bottom:6px}
+  .decided .ok{color:var(--mint-dark);font-weight:700}.decided .no{color:var(--rose-dark);font-weight:700}
+  .btn.out{background:#fff;color:var(--rose-dark);border:1.5px solid #f3b9cd}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <a class="back" href="index.html">חזרה לקיצורים</a>
+  <h1 class="page-title">אישור משחקים</h1>
+  <div class="page-sub">שני משחקים חדשים בכל שבוע, כל פעם לשלבים אחרים בתוכנית. מה שתאשרי, אבנה ואביא לבדיקה לפני שיעלה לשלב.</div>
+  <div id="main"><div class="lock">טוענת...</div></div>
+</div>
+<script type="module">
+import { $, getSecret, needKey, send, loadEnc, setSt } from './common.js';
+const k = getSecret(); const main = $('main');
+if (!k) { needKey(main); throw 0; }
+let d; try { d = await loadEnc(k, 'data.enc'); } catch (e) { main.innerHTML = '<div class="lock">אין עדיין נתונים. נסי שוב בעוד כמה דקות.</div>'; throw 0; }
+const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ls = { get() { try { return JSON.parse(localStorage.getItem('henlinks-games') || '{}') } catch (e) { return {} } }, set(id, v) { try { const o = this.get(); o[id] = v; localStorage.setItem('henlinks-games', JSON.stringify(o)) } catch (e) {} } };
+const all = d.games || [];
+const mine = ls.get();
+const statusOf = g => g.status !== 'pending' ? g.status : (mine[g.id] || 'pending');
+function draw() {
+  const pending = all.filter(g => statusOf(g) === 'pending'), decided = all.filter(g => statusOf(g) !== 'pending');
+  let html = '';
+  if (!pending.length) html += '<div class="lock">אין כרגע הצעות שמחכות להחלטה. הצעות חדשות מגיעות כל שבוע, שתיים בכל פעם.</div>';
+  html += pending.map(g => `<div class="box gp" data-id="${esc(g.id)}"><h3>${esc(g.title)}</h3>
+    <div class="tags"><span class="tag">${esc(g.program)}</span><span class="tag m">שלב: ${esc(g.stage)}</span><span class="tag b">גילאי ${esc(g.age)}</span></div>
+    <h4>איך משחקים</h4><p>${esc(g.how)}</p><h4>למה בשלב הזה</h4><p>${esc(g.why)}</p><h4>הקול והתחושה</h4><p>${esc(g.voice)}</p>
+    <textarea placeholder="הערה או שינוי שאת רוצה (לא חובה)"></textarea>
+    <div class="row"><button class="btn mint" data-a="yes">מאשרת, תבני אותו</button><button class="btn out" data-a="no">לא מתאים</button></div><div class="st"></div></div>`).join('');
+  if (decided.length) html += '<div class="decided-title">מה שהוחלט</div>' + decided.map(g => {
+    const s = statusOf(g), ok = s === 'approved';
+    return `<div class="decided"><span class="${ok ? 'ok' : 'no'}">${ok ? '&#10003; אושר' : '&#10007; לא אושר'}</span><span>${esc(g.title)} (${esc(g.stage)})${g.note ? ' - ' + esc(g.note) : ''}</span></div>`;
+  }).join('');
+  main.innerHTML = html;
+  main.querySelectorAll('.gp').forEach(el => {
+    const g = all.find(x => x.id === el.dataset.id), st = el.querySelector('.st'), note = () => el.querySelector('textarea').value.trim();
+    const act = (box, label) => async e => {
+      el.querySelectorAll('button').forEach(b => b.disabled = true); setSt(st, 'שולחת...');
+      try { await send(k, { box, ref: g.id, text: g.title + (note() ? ' | ' + note() : '') }); ls.set(g.id, box === 'game-approve' ? 'approved' : 'rejected'); g.note = note(); draw(); }
+      catch (er) { el.querySelectorAll('button').forEach(b => b.disabled = false); setSt(st, 'השליחה נכשלה, נסי שוב', 'err'); }
+    };
+    el.querySelector('[data-a=yes]').onclick = act('game-approve');
+    el.querySelector('[data-a=no]').onclick = act('game-reject');
+  });
+}
+draw();
+</script>
+</body>
+</html>
