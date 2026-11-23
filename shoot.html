@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>.filmed-title{margin:26px 0 8px;font-weight:700;color:#5E5A73;font-size:15px}.filmed{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:6px;border-radius:12px;background:#EAF7F1;border:1px solid #BFE6D3;color:#2E6B52;font-size:14px;line-height:1.35}.filmed .tick{flex:none;width:22px;height:22px;border-radius:50%;background:#3FAF7F;color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:14px}</style>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -18,21 +19,29 @@
 <div id="wrap">
   <a class="back" href="index.html">חזרה לקיצורים</a>
   <h1 class="page-title">טקסטים לצילום</h1>
-  <div class="page-sub">דיבור למצלמה מתוך פוסטי הליבה. אחרי שצילמת והעלית בתיבה בעמוד קלוד, לוחצת "צילמתי ושלחתי" והטקסט נעלם מכאן. טקסט שלא רלוונטי אפשר להסיר ב"מחיקה"</div>
+  <div class="page-sub">דיבור למצלמה מתוך פוסטי הליבה. אחרי שצילמת והעלית בתיבה בעמוד קלוד, הטקסט נסגר לבד ועובר לתחתית הדף עם וי ירוק והמצב שלו (התקבל, בעריכה, מוכן לבדיקה). אפשר גם ללחוץ "צילמתי ושלחתי". טקסט שלא רלוונטי אפשר להסיר ב"מחיקה"</div>
   <div id="main"><div class="lock">טוענת...</div></div>
 </div>
 <script type="module">
 import { $, getSecret, needKey, send, loadEnc, setSt } from './common.js';
 const k = getSecret(); const main = $('main');
 if (!k) { needKey(main); throw 0; }
-const ls = { get() { try { return JSON.parse(localStorage.getItem('henlinks-done') || '[]') } catch (e) { return [] } }, add(x) { try { localStorage.setItem('henlinks-done', JSON.stringify([...this.get(), x])) } catch (e) {} } };
+const ls = { doneIds() { try { return JSON.parse(localStorage.getItem('henlinks-filmed') || '[]') } catch (e) { return [] } }, addDone(x) { try { localStorage.setItem('henlinks-filmed', JSON.stringify([...this.doneIds(), x])) } catch (e) {} }, get() { try { return JSON.parse(localStorage.getItem('henlinks-done') || '[]') } catch (e) { return [] } }, add(x) { try { localStorage.setItem('henlinks-done', JSON.stringify([...this.get(), x])) } catch (e) {} } };
 let d; try { d = await loadEnc(k, 'data.enc'); } catch (e) { main.innerHTML = '<div class="lock">אין עדיין נתונים. נסי שוב בעוד כמה דקות.</div>'; throw 0; }
 const esc = s => String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const filmedRows = () => {
+  // טקסט שצולם והתקבל נסגר: שורה אחת עם וי ירוק ומצב, בתחתית הדף (חן, 23.11.26)
+  const rows = [...(d.filmed || [])]; const ids = new Set(rows.map(r => r.id)); const done = ls.get();
+  for (const s of (d.shoot || [])) if (done.includes(s.id) && !ids.has(s.id) && ls.doneIds().includes(s.id)) rows.push({ id: s.id, code: s.code, name: s.name, state: 'התקבל' });
+  return rows;
+};
+const filmedHtml = () => { const rows = filmedRows(); if (!rows.length) return '';
+  return '<div class="filmed-title">צולם והתקבל</div>' + rows.map(r => `<div class="filmed"><span class="tick">&#10003;</span><span>${esc(r.code)} - ${esc(r.name)} - ${esc(r.state)}</span></div>`).join(''); };
 function draw() {
   const done = ls.get(), list = (d.shoot || []).filter(s => !done.includes(s.id));
-  if (!list.length) { main.innerHTML = '<div class="lock">אין כרגע טקסטים שמחכים לצילום.</div>'; return; }
+  if (!list.length) { main.innerHTML = '<div class="lock">אין כרגע טקסטים שמחכים לצילום.</div>' + filmedHtml(); return; }
   main.innerHTML = list.map(s => `<div class="box" data-id="${s.id}" data-code="${esc(s.code)}"><h3>${esc(s.code)} ${esc(s.name)}</h3><div class="shoot">${esc(s.text)}</div>
-    <div class="row"><button class="btn rose" data-a="copy">העתקת הטקסט</button><button class="btn mint" data-a="done">צילמתי ושלחתי</button><button class="btn" data-a="del" style="background:#fff;color:#B8236B;border:1.5px solid #FBC5D6">מחיקה</button></div><div class="st"></div></div>`).join('');
+    <div class="row"><button class="btn rose" data-a="copy">העתקת הטקסט</button><button class="btn mint" data-a="done">צילמתי ושלחתי</button><button class="btn" data-a="del" style="background:#fff;color:#B8236B;border:1.5px solid #FBC5D6">מחיקה</button></div><div class="st"></div></div>`).join('') + filmedHtml();
   main.querySelectorAll('.box').forEach(el => {
     const s = list.find(x => x.id === el.dataset.id), st = el.querySelector('.st');
     el.querySelector('[data-a=copy]').onclick = async () => {
@@ -41,7 +50,7 @@ function draw() {
     };
     el.querySelector('[data-a=done]').onclick = async e => {
       e.target.disabled = true; setSt(st, 'שולחת...');
-      try { await send(k, { box: 'shot-done', ref: s.id, text: s.code + ' ' + s.name }); ls.add(s.id); el.remove(); if (!main.querySelector('.box')) draw(); }
+      try { await send(k, { box: 'shot-done', ref: s.id, text: s.code + ' ' + s.name }); ls.add(s.id); ls.addDone(s.id); draw(); }
       catch (er) { e.target.disabled = false; setSt(st, 'השליחה נכשלה, נסי שוב', 'err'); }
     };
     el.querySelector('[data-a=del]').onclick = async e => {
